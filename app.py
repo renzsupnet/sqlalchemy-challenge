@@ -113,6 +113,50 @@ def tobs():
     
     return jsonify(data_val)
 
+@app.route("/api/v1.0/<start>")
+def stat_starting_from(start):
+
+    # Aggregated functions
+    sel = [
+        func.min(Measurement.tobs),
+        func.max(Measurement.tobs),
+        func.avg(Measurement.tobs)
+    ]
+
+    # Query to retrieve the min, max and average tobs
+    data = session.query(*sel).filter(Measurement.date >= start).all()
+
+    # Extracting values from data
+    data_val = {}
+    for val in data:
+        data_val["TMIN"] = val[0]
+        data_val["TMAX"] = val[1]
+        data_val["TAVG"] = val[2]
+    
+    return jsonify(data_val)
+
+@app.route("/api/v1.0/<start>/<end>")
+def stat_from_to(start, end):
+
+    # Aggregated functions
+    sel = [
+        func.min(Measurement.tobs),
+        func.max(Measurement.tobs),
+        func.avg(Measurement.tobs)
+    ]
+
+    # Query to retrieve the min, max and average tobs between start and end
+    data = session.query(*sel).filter(Measurement.date >= start).filter(Measurement.date <= end).all()
+
+    # Extracting values from data
+    data_val = {}
+    for val in data:
+        data_val["TMIN"] = val[0]
+        data_val["TMAX"] = val[1]
+        data_val["TAVG"] = val[2]
+    
+    return jsonify(data_val)
+
 if __name__ == '__main__':
     app.run(debug=True)
 
