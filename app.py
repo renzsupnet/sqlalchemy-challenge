@@ -1,10 +1,11 @@
 # Import the dependencies.
 import numpy as np
-
+import datetime as dt
 import sqlalchemy
+
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
-from sqlalchemy import create_engine, func
+from sqlalchemy import create_engine, desc, func
 
 from flask import Flask, jsonify
 
@@ -47,4 +48,32 @@ def homepage():
         f"/api/v1.0/stations<br/>"
         f"/api/v1.0/tobs"     
     )
+
+@app.route("/api/v1.0/precipitation")
+def precipitation():
+
+    # Calculate the date for the last 12 months of data
+    most_recent_date = session.query(Measurement.date).order_by(desc(Measurement.date)).first()
+    date_str = most_recent_date[0]
+    date_obj = dt.datetime.strptime(date_str, '%Y-%m-%d')
+    one_year_ago = date_obj - dt.timedelta(days=365)
+    one_year_ago = one_year_ago.strftime('%Y-%m-%d')
+
+    # Perform a query to retrieve the data and precipitation scores
+    data = session.query(Measurement.date, Measurement.prcp).filter(
+        Measurement.date >= one_year_ago
+    ).order_by(Measurement.date).all()
+
+    data_val = {}
+    for val in data:
+        data_val[val[0]] = val[1]
+    
+    return jsonify(data_val)
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+
+session.close()
+
 
