@@ -82,7 +82,35 @@ def stations():
     data_val = []
     for val in data:
         data_val.append(val[0])
-        
+
+    return jsonify(data_val)
+
+@app.route("/api/v1.0/tobs")
+def tobs():
+
+    # Calculate the date for the last 12 months of data
+    most_recent_date = session.query(Measurement.date).order_by(desc(Measurement.date)).first()
+    date_str = most_recent_date[0]
+    date_obj = dt.datetime.strptime(date_str, '%Y-%m-%d')
+    one_year_ago = date_obj - dt.timedelta(days=365)
+    one_year_ago = one_year_ago.strftime('%Y-%m-%d')
+
+    # Query to retrieve the most active station
+    most_active_station = session.query(
+    Station.station
+    ).filter(Station.station == Measurement.station)\
+    .group_by(Station.station).order_by(desc(func.count(Measurement.station))).all()[0][0]
+
+    # Query to retrieve the temperature observations for the last 12 months of data
+    data = session.query(
+        Measurement.date, Measurement.tobs
+    ).filter(Measurement.date >= one_year_ago).order_by(Measurement.date).all()
+
+    # Extracting values from data
+    data_val = {}
+    for val in data:
+        data_val[val[0]] = val[1]
+    
     return jsonify(data_val)
 
 if __name__ == '__main__':
