@@ -64,10 +64,25 @@ def precipitation():
         Measurement.date >= one_year_ago
     ).order_by(Measurement.date).all()
 
+    # Extracting values from data
     data_val = {}
     for val in data:
         data_val[val[0]] = val[1]
     
+    return jsonify(data_val)
+
+
+@app.route("/api/v1.0/stations")
+def stations():
+
+    # Query to retrieve stations
+    data = session.query(Station.station).all()
+
+    # Extracting values from data
+    data_val = []
+    for val in data:
+        data_val.append(val[0])
+        
     return jsonify(data_val)
 
 if __name__ == '__main__':
